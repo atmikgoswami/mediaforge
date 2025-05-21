@@ -16,9 +16,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy server code
 COPY server/ /app/server/
 
-# Copy environment file
-COPY .env /app/
-
 # Set PYTHONPATH
 ENV PYTHONPATH=/app
 

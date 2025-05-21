@@ -21,9 +21,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy worker package
 COPY worker/ /app/worker/
 
-# Copy environment file
-COPY .env /app/
-
 # Set PYTHONPATH so Python can find the worker module
 ENV PYTHONPATH=/app
 
