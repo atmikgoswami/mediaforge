@@ -1,0 +1,36 @@
+# Use Python 3.11 slim image
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies for PDF processing and image handling
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    libjpeg-dev \
+    libpng-dev \
+    libfreetype6-dev \
+    libmupdf-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy worker requirements and install Python dependencies
+COPY worker/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy worker package
+COPY worker/ /app/worker/
+
+# Copy environment file
+COPY .env /app/
+
+# Set PYTHONPATH so Python can find the worker module
+ENV PYTHONPATH=/app
+
+# Create a non-root user for security
+RUN useradd --create-home --shell /bin/bash worker_user
+RUN chown -R worker_user:worker_user /app
+USER worker_user
+
+# Default command to run Celery worker
+CMD ["celery", "-A", "worker.worker", "worker", "--loglevel=info", "--concurrency=4"]

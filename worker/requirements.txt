@@ -1,0 +1,7 @@
+celery
+redis
+pillow
+python-dotenv
+cloudinary
+requests
+PyMuPDF
