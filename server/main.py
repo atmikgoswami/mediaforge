@@ -85,7 +85,7 @@ async def health_check():
 
 # Image processing endpoints
 @app.post("/image/compress")
-async def compress_image(upload: UploadFile = File(...), quality: int = 75):
+async def compress_image(upload: UploadFile = File(...), quality: int = Form(75)):
     """Compress an image with specified quality"""
     if not upload.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
