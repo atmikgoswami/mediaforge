@@ -12,21 +12,31 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libfreetype6-dev \
     libmupdf-dev \
+    libwebp-dev \
+    libheif-dev \
+    pkg-config \
+    # Cleanup
     && rm -rf /var/lib/apt/lists/*
 
 # Copy worker requirements and install Python dependencies
 COPY worker/requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy worker package
 COPY worker/ /app/worker/
 
-# Set PYTHONPATH so Python can find the worker module
+# Set PYTHONPATH 
 ENV PYTHONPATH=/app
 
+# Create directory for temporary image processing
+RUN mkdir -p /tmp/image_processing
+
 # Create a non-root user for security
-RUN useradd --create-home --shell /bin/bash worker_user
-RUN chown -R worker_user:worker_user /app
+RUN useradd --create-home --shell /bin/bash worker_user && \
+    chown -R worker_user:worker_user /app && \
+    chown -R worker_user:worker_user /tmp/image_processing
+
 USER worker_user
 
 # Default command to run Celery worker

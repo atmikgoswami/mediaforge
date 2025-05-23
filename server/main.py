@@ -85,7 +85,11 @@ async def health_check():
 
 # Image processing endpoints
 @app.post("/image/compress")
-async def compress_image(upload: UploadFile = File(...), quality: int = Form(75)):
+async def compress_image_task(upload: UploadFile = File(...), 
+                                  quality: int = Form(80), 
+                                  target_size_kb: Optional[int] = Form(None),
+                                  preserve_format: bool = Form(True),
+                                  ):
     """Compress an image with specified quality"""
     if not upload.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
@@ -93,10 +97,17 @@ async def compress_image(upload: UploadFile = File(...), quality: int = Form(75)
     if quality < 1 or quality > 100:
         raise HTTPException(status_code=400, detail="Quality must be between 1 and 100")
     
+    task_args = {
+        "quality": quality,
+        "preserve_format": preserve_format,
+    }
+    if target_size_kb is not None:
+        task_args["target_size_kb"] = target_size_kb
+
     task_id = await create_task(
         "image.compress",
         upload,
-        quality=quality
+        **task_args
     )
     
     return {"task_id": task_id}
@@ -165,11 +176,14 @@ async def compress_pdf(
             status_code=400,
             detail=f"Invalid compression level. Must be one of: {', '.join(valid_levels)}"
         )
-    
+    task_args = {
+        "compression_level": compression_level,
+    }
+
     task_id = await create_task(
         "pdf.compress",
         upload,
-        compression_level=compression_level
+        **task_args,
     )
     
     return {"task_id": task_id}
